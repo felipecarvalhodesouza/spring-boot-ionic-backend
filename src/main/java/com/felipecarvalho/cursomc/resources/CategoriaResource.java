@@ -1,6 +1,9 @@
 package com.felipecarvalho.cursomc.resources;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.felipecarvalho.cursomc.domain.Categoria;
+import com.felipecarvalho.cursomc.dto.CategoriaDTO;
 import com.felipecarvalho.cursomc.services.CategoriaService;
 
 @RestController
@@ -23,9 +27,7 @@ public class CategoriaResource {
 	
 	@RequestMapping(value="/{id}", method=RequestMethod.GET)
 	public ResponseEntity<Categoria> find(@PathVariable Integer id) {
-		
 		Categoria obj = service.find(id);
-		
 		return ResponseEntity.ok().body(obj);
 	}
 	
@@ -48,5 +50,13 @@ public class CategoriaResource {
 	public ResponseEntity<Void> delete(@PathVariable Integer id) {
 		service.delete(id);
 		return ResponseEntity.noContent().build();
-	}	
+	}
+	
+	@RequestMapping(method=RequestMethod.GET)
+	public ResponseEntity<List<CategoriaDTO>> findAl() {
+		List<Categoria> list = service.findAll();
+		//pesquisar função stream da lista.
+		List<CategoriaDTO> listDto = list.stream().map(obj -> new CategoriaDTO(obj)).collect(Collectors.toList());
+		return ResponseEntity.ok().body(listDto);
+	}
 }
