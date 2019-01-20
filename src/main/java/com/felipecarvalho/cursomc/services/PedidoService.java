@@ -10,6 +10,7 @@ import com.felipecarvalho.cursomc.domain.ItemPedido;
 import com.felipecarvalho.cursomc.domain.PagamentoComBoleto;
 import com.felipecarvalho.cursomc.domain.Pedido;
 import com.felipecarvalho.cursomc.domain.enums.EstadoPagamento;
+import com.felipecarvalho.cursomc.repositories.ClienteRepository;
 import com.felipecarvalho.cursomc.repositories.ItemPedidoRepository;
 import com.felipecarvalho.cursomc.repositories.PagamentoRepository;
 import com.felipecarvalho.cursomc.repositories.PedidoRepository;
@@ -37,6 +38,9 @@ public class PedidoService {
 	@Autowired
 	private ItemPedidoRepository itemPedidoRepository;
 	
+	@Autowired
+	private ClienteRepository clienteRepository;
+	
 	public Pedido find(Integer id) {
 		Optional<Pedido> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
@@ -46,6 +50,7 @@ public class PedidoService {
 	public Pedido insert(Pedido obj) {
 		obj.setId(null);
 		obj.setInstante(new Date());
+		obj.setCliente(clienteRepository.getOne(obj.getCliente().getId()));
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
 		if(obj.getPagamento() instanceof PagamentoComBoleto) {
@@ -56,10 +61,12 @@ public class PedidoService {
 		pagamentoRepository.save(obj.getPagamento());
 		for(ItemPedido ip : obj.getItens()) {
 			ip.setDesconto(0.0);
-			ip.setPreco(produtoRepository.findById(ip.getProduto().getId()).get().getPreco());
+			ip.setProduto(produtoRepository.findById(ip.getProduto().getId()).get());
+			ip.setPreco(ip.getProduto().getPreco());
 			ip.setPedido(obj);
 		}
 		itemPedidoRepository.saveAll(obj.getItens());
+		System.out.println(obj);
 		return obj;
 	}
 }
